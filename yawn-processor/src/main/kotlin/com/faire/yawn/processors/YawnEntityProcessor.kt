@@ -13,6 +13,10 @@ import com.faire.yawn.generators.properties.EmbeddedIdDefGenerator
 import com.faire.yawn.generators.properties.JoinColumnDefGenerator
 import com.faire.yawn.generators.properties.JoinColumnDefWithCompositeKeyGenerator
 import com.faire.yawn.generators.properties.JoinColumnDefWithForeignKeyGenerator
+import com.faire.yawn.generators.typealiases.EntityYawnQueryScopeTypeAliasGenerator
+import com.faire.yawn.generators.typealiases.JoinYawnQueryScopeTypeAliasGenerator
+import com.faire.yawn.generators.typealiases.ProjectedYawnQueryScopeTypeAliasGenerator
+import com.faire.yawn.generators.typealiases.TableDefTypeAliasGenerator
 import com.faire.yawn.generators.types.EmbeddedIdTypeGenerator
 import com.faire.yawn.generators.types.EmbeddedTypeGenerator
 import com.faire.yawn.util.YawnContext
@@ -38,8 +42,16 @@ import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeAliasSpec
 import com.squareup.kotlinpoet.TypeSpec
 import kotlin.reflect.KClass
+
+private val entityTypeAliasGenerators = listOf(
+    TableDefTypeAliasGenerator,
+    EntityYawnQueryScopeTypeAliasGenerator,
+    ProjectedYawnQueryScopeTypeAliasGenerator,
+    JoinYawnQueryScopeTypeAliasGenerator,
+)
 
 /**
  * Implementation of [BaseYawnProcessor] for [YawnEntity] annotated classes.
@@ -94,6 +106,10 @@ internal class YawnEntityProcessor(codeGenerator: CodeGenerator) : BaseYawnProce
         return classBuilder
             .addSuperclassConstructorParameter(PARENT_PARAMETER_NAME)
             .addTypes(generateEmbeddedDefinitions(yawnContext))
+    }
+
+    override fun generateTypeAliases(yawnContext: YawnContext): List<TypeAliasSpec> {
+        return entityTypeAliasGenerators.map { it.generate(yawnContext) }
     }
 
     /**
